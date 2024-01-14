@@ -26,7 +26,7 @@ const registerUser = asyncHandler( async(req, res)=>{
     throw new ApiErrors(400,"Required fields needs to be filled")
   }
   //check if username or email already exists 
- const existedUser=  User.findOne({$or:[{email}, {userName}]});
+ const existedUser= await  User.findOne({$or:[{email}, {userName}]});
   if(existedUser){
     throw new ApiErrors(409, "Username or email already exists ")
   }
@@ -34,7 +34,14 @@ const registerUser = asyncHandler( async(req, res)=>{
   //check if images exists in the request.
 
  const avatarLocalPath=  req.files?.avatar[0]?.path;
- const coverImageLocalPath= req.files?.coverImage.avatar[0]?.path;
+ console.log(req.files)
+ console.log("working till here ",avatarLocalPath);
+
+ let coverImageLocalPath;
+
+ if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length>0){
+  coverImageLocalPath= req.files.coverImage[0].path;
+ }
 
  if(!avatarLocalPath){
   throw new ApiErrors(400 , "Avatar image is required")
@@ -42,7 +49,9 @@ const registerUser = asyncHandler( async(req, res)=>{
 
 
   const avatar =  await uploadOnCloudinary(avatarLocalPath);
+  console.log("avatar is ",avatar)
  const coverImage= await uploadOnCloudinary(coverImageLocalPath);
+ console.log("cover image is ", coverImage);
  if(!avatar){
   throw new ApiErrors(400, "Avatar is required on cloudinary")
  }
@@ -50,17 +59,17 @@ const registerUser = asyncHandler( async(req, res)=>{
  const user =await User.create({
   fullName,
   avatar:avatar.url,
-  coverImage :coverImage.url || "",
+  coverImage :coverImage?.url || "",
   email,
   password,
-  userName: userName.toLowerCase()
+  userName: userName
  })
 
  const createdUser= await User.findById(user._id).select("-password -refreshToken" );
  if(!createdUser){
   throw new ApiErrors(500, "server error while creating user")
  }
-  return res.status(201).json(ApiResponse(201,createdUser,"user has been created successfully"))
+  return res.status(201).json(new ApiResponse(201,createdUser,"user has been created successfully"))
 
 
 } )
