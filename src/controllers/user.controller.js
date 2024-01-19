@@ -14,7 +14,7 @@ const refreshToken =  user.generateRefreshToken()
 await  user.save({validateBeforeSave : false })
 return {refreshToken, accessToken}
 }catch(error){
-  throw new ApiErrors(500, "something went wrong while generating access and refresh tokens")
+  throw new ApiErrors(500,error)
 }
 }
 
@@ -92,10 +92,11 @@ const loginUser = asyncHandler(async (req, res)=>{
   try{
     //take user input 
     const {userName ,email,password}=req.body;
-    if(!email || !userName){
+    if(!email && !userName){
       throw new ApiErrors(400,"Email or username is required")
     }
-   const user =  User.findOne({
+    console.log(email , password)
+   const user = await  User.findOne({
       $or:[{userName},{email}]
     })
     if(!user){
@@ -106,7 +107,7 @@ const loginUser = asyncHandler(async (req, res)=>{
       throw new ApiErrors(401, "Invalid user credentials")
     }
   const {accessToken, refreshToken}= await  generateAccessAndRefreshTokens(user._id);
-  const loggedInUser = await findById(user._id).select("-password -refreshToken")
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
   const options={
     httpOnly:true ,
     secure :true 
@@ -125,7 +126,7 @@ const loginUser = asyncHandler(async (req, res)=>{
 
   }
   catch(error){
-   throw new ApiErrors(500,"something went wrong in our side!")
+   throw new ApiErrors(500, error)
   }
 })
 
