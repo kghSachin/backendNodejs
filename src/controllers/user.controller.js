@@ -218,7 +218,7 @@ const updateAccountDetails = asyncHandler(async(req, res )=>{
     }
     ,{new:true}).select("-password")
 
-    return res.status(200).json(new ApiResponse(200, "Account details updated successfully", user))
+    return res.status(200).json(new ApiResponse(200, "Account details updated successfully", req.user))
 
 })
 
@@ -238,7 +238,7 @@ const  user = User.findByIdAndDelete(req.user?._id,{
 },{new:true }).select("-password")
 
 return res.status(200).json(new ApiResponse(200, "avatar updated successfully ",
-user
+req.user
 ))
 })
 
