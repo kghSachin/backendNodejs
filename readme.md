@@ -1,1 +1,1 @@
-#backend for my personal project.
+#backend course from hitesh chaudhary.
