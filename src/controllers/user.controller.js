@@ -47,6 +47,8 @@ const registerUser = asyncHandler( async(req, res)=>{
   }
   
   //check if images exists in the request.
+  console.log("yaha k aairaxa ?")
+  console.log(req.files.coverImage[0]?.path);
 
  const avatarLocalPath=  req.files?.avatar[0]?.path;
  console.log(req.files)
