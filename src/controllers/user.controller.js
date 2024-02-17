@@ -258,13 +258,14 @@ const updateCoverImage= asyncHandler(async(req,res)=>{
     {
     $set:{  coverImage:coverImage.url,}
 
-  }
-  ,{new:true}).select("-password")
+  },
+  {new:true}).select("-password")
 
 })
 
 const getUserChannelProfile= asyncHandler(async(req, res)=>{
   const {userName}= req.params;
+  console.log("username is ", userName);
   if(!userName?.trim()){
     throw new ApiErrors(400, "username is missing")
   }
