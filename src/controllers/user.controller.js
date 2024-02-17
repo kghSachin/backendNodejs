@@ -272,8 +272,69 @@ const getUserChannelProfile= asyncHandler(async(req, res)=>{
     $match: {
       userName:userName?.toLowerCase()
     }
+   },
+   {
+        $lookup: {
+          //subscriptions is there for the model Subscription because in database the model is saved in lowercase and plural form
+         from: "subscriptions",
+         localField: "_id",
+         foreignField:"channel",
+         as:"subscribers"
+        }
+   },
+   {
+    $lookup: {
+         from: "subscriptions",
+         localField: "_id",
+         foreignField: "subscriber",
+         as: "subscribedTo"
+    },
+   },
+   {
+    $addFields:{
+      subscribersCount:{
+        $size:"$subscribers"
+      },
+      channelsSubscribedToCount:{
+        $size:"$subscribedTo"
+      
+      },
+      isSubscribed:{
+       $cond:{
+        if:{in:[req.user?.id, "$subscribers.subscriber"]},
+        then:true,
+        else:false
+
+        
+       }
+      }
+
+    }
+   },
+   {
+    $project:{
+      fullName:1,
+      isSubscribed:1,
+      channelsSubscribedToCount:1,
+      subscribersCount:1,
+      email:1,
+      coverImage:1,
+      isSubscribed:1,
+      avatar:1,
+
+    }
    }
   ])
+  
+  console.log("channel value is ", channel);
+  if(!channel?.length){
+    throw new ApiErrors(404, "channel does not exists")
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, "channel profile fetched successfully", channel[0])
+  )
+
 })
 
 
