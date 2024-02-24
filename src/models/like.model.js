@@ -20,7 +20,7 @@ const likeSchema = new Schema(
             ref: "Video"
         },
         tweet :{
-            type: Schema.type.ObjectId,
+            type: Schema.Types.ObjectId,
             ref:"Tweet"
         }
 

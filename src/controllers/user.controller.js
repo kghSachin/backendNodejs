@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from "../utils/cloudinary.services.js"
 import {ApiResponse} from "../utils/api-response.js"
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose"
+import { Playlist } from "../models/playlist.model.js"
 
 
 const generateAccessAndRefreshTokens = async(userId)=>{
@@ -48,7 +49,7 @@ const registerUser = asyncHandler( async(req, res)=>{
   }
   
   //check if images exists in the request.
-  console.log("yaha k aairaxa ?")
+
   console.log(req.files.coverImage[0]?.path);
 
  const avatarLocalPath=  req.files?.avatar[0]?.path;
@@ -84,6 +85,8 @@ const registerUser = asyncHandler( async(req, res)=>{
  })
 
  const createdUser= await User.findById(user._id).select("-password -refreshToken" );
+ 
+ console.log("created user is ", createdUser);
  if(!createdUser){
   throw new ApiErrors(500, "server error while creating user")
  }
