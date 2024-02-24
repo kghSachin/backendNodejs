@@ -28,7 +28,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
       // check if the playlist already exists
       const duplicate = await Playlist.findOne({$and:[{name:name},{owner:req.user._id}]});
       console.log("duplicate exists ", duplicate);
-      if(duplicate.name!=null){
+      if(duplicate!=null){
         console.log("working here");
         console.log("duplicate is ", duplicate.name);
         //freezes after this line
@@ -58,12 +58,57 @@ const createPlaylist = asyncHandler(async (req, res) => {
   }
 })
 
- const getPlaylist = asyncHandler((req, res)=>{
+ const getPlaylist = asyncHandler(async (req, res)=> {
+  const {playlistId: ownerId}= req.params
+  console.log("playlist id is ", ownerId);
+  if(!ownerId){
+    throw new ApiErrors(400, "playlist id is required")
+  }
 
+  //isValidObjectId is a mongoose function that checks if the id is a valid object id
+  if(!isValidObjectId(ownerId)){
+    throw new ApiErrors(400, "invalid owner id")
+  }
+  
+  //retrieve the playlist data
+  const playlists = await Playlist.aggregate([
+    {
+      $match:{
+        owner: new mongoose.Types.ObjectId(ownerId)
+      }
+    },
+    {
+      $lookup:{
+        from: "videos",
+        localField:"video",
+        foreignField:"_id",
+        as:"videos"
+      }
+    },
+    {
+      $addFields:{
+        playlist:{
+          $first:"$videos"
+        }
+      }
+      
+    }
+  ])
+  console.log("playlist is ", playlists);
+  if(!playlists){
+    throw new ApiErrors(404, "playlist not found")
+  
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, "Playlist retrieved successfully", playlists)
+  )
+
+   
  })
 
 
 export {
     createPlaylist,
-    getPlaylist
+    getPlaylist 
 }
