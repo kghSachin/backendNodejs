@@ -29,4 +29,4 @@ import playlistRouter from "./routes/playlist.routes.js";
 
 //routes declaration 
 app.use("/api/v1/users",userRouter)
-app.use("/api/v1/users",playlistRouter)
+app.use("/api/v1/playlists",playlistRouter)

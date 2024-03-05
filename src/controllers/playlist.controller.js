@@ -113,13 +113,34 @@ const ownerId= String(req.user._id);
    
  })
 
- const getPlaylistById= asyncHandler(async(req, res)=>{
-  
+ const getPlaylistById= asyncHandler(async(req, res, next )=>{
+     const {playlistId}= req.params;
+     if(!playlistId){
+      return next(new ApiErrors(400, "playlist id is required"))
+     }
+
+    if(!isValidObjectId(playlistId)){
+      return next(new ApiErrors(400, "invalid playlist id"))
+    }
+try{
+  const playlist = await Playlist.findById(new mongoose.Types.ObjectId(playlistId));
+  if(!playlist){
+    return next(new ApiErrors(404, "playlist not found"))
+  }
+  console.log("playlist is ", playlist);
+  return res.status(200).json(
+    new ApiResponse(200, "Playlist retrieved successfully", playlist)
+  )
+}catch(error){
+  console.log("error is ", error);
+}
+   
  })
 
 
 
 export {
     createPlaylist,
-    getUserPlaylists as getPlaylist 
+    getUserPlaylists as getPlaylist ,
+    getPlaylistById
 }
