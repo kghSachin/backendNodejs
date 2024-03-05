@@ -22,7 +22,7 @@ const createPlaylist = asyncHandler(async (req, res, next) => {
   try {
       const user = await User.findOne(req.user?._id);
       if(!user){
-        throw  new ApiErrors(400, "unauthorized request")
+        return next( new ApiErrors(400, "unauthorized request"))
       }
 
       // check if the playlist already exists
@@ -44,7 +44,7 @@ const createPlaylist = asyncHandler(async (req, res, next) => {
       )
       console.log("playlist is ", playList);
       if(!playList){
-        throw  new ApiErrors(400, "Unable to create the playlist ")
+       return next( new ApiErrors(400, "Unable to create the playlist "))
         }
     
       
@@ -53,11 +53,11 @@ const createPlaylist = asyncHandler(async (req, res, next) => {
         );
       
   } catch (error) {
-    new ApiErrors(500, "Something went wrong while creating the playlist")
+   return  next( new ApiErrors(500, "Something went wrong while creating the playlist"))
   }
 })
 
- const getPlaylist = asyncHandler(async (req, res)=> {
+ const getUserPlaylists = asyncHandler(async (req, res, next)=> {
   console.log(req.user);
   console.log("body is", String(req.user._id));
   // console.log("body is", req.params);
@@ -66,12 +66,12 @@ const ownerId= String(req.user._id);
   // const {playlistId: ownerId}= req.params
   console.log("playlist id is ", ownerId);
   if(!ownerId){
-    throw new ApiErrors(400, "playlist id is required")
+    return next( new ApiErrors(400, "playlist id is required"))
   }
 
   //isValidObjectId is a mongoose function that checks if the id is a valid object id
   if(!isValidObjectId(ownerId)){
-    throw new ApiErrors(400, "invalid owner id")
+    return next(new ApiErrors(400, "invalid owner id"))
   }
   
 
@@ -102,7 +102,7 @@ const ownerId= String(req.user._id);
   ])
   // console.log("playlist is ", playlists);
   if(!playlists){
-    throw new ApiErrors(404, "playlist not found")
+    return next( new ApiErrors(404, "playlist not found"))
   
   }
 
@@ -113,10 +113,13 @@ const ownerId= String(req.user._id);
    
  })
 
+ const getPlaylistById= asyncHandler(async(req, res)=>{
+  
+ })
 
 
 
 export {
     createPlaylist,
-    getPlaylist 
+    getUserPlaylists as getPlaylist 
 }
