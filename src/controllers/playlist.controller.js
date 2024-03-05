@@ -119,6 +119,7 @@ const ownerId= String(req.user._id);
       return next(new ApiErrors(400, "playlist id is required"))
      }
 
+
     if(!isValidObjectId(playlistId)){
       return next(new ApiErrors(400, "invalid playlist id"))
     }
@@ -132,15 +133,55 @@ try{
     new ApiResponse(200, "Playlist retrieved successfully", playlist)
   )
 }catch(error){
-  console.log("error is ", error);
+  return next(new ApiErrors(500, "Something went wrong while retrieving the playlist"))
 }
    
  })
 
+ const deletePlaylist= asyncHandler(async(req, res, next)=>{
+  const{playlistId}= req.params;
+  const userId= req.user._id;
+  if(!playlistId){
+    return next(new ApiErrors(400, "playlist id is required to delete the playlist"))
+  }
+
+  if(!isValidObjectId(playlistId)){
+    return next(new ApiErrors(400, "invalid playlist id"))
+  }
+
+  try{
+    const playlist=await  Playlist.findById(new mongoose.Types.ObjectId(playlistId));
+    if(!playlist){
+      throw new ApiErrors(404, "playlist not found")
+    }
+    console.log("playlist is ", playlist);
+    console.log("playlist is ", playlist.owner);
+    if(playlist.owner.toString()!==userId.toString()){
+      console.log(playlist.owner.toString());
+      console.log(userId.toString());
+      throw new ApiErrors(403, "unauthorized request to delete the playlist")
+    }
+
+    
+   const deletePlaylist=   await Playlist.findByIdAndDelete(
+      new mongoose.Types.ObjectId(playlistId)
+     );
+    if(!deletePlaylist){
+      throw new ApiErrors(500, "Unable to delete the playlist")
+    }
+    return res.status(200).json(
+      new ApiResponse(200, "Playlist deleted successfully", deletePlaylist)
+    )
+  }catch(error){
+    console.log("error is ", error);
+    throw  new ApiErrors(500, "Something went wrong while deleting the playlist")
+  }
+ })
 
 
 export {
     createPlaylist,
     getUserPlaylists as getPlaylist ,
-    getPlaylistById
+    getPlaylistById,
+    deletePlaylist,
 }
