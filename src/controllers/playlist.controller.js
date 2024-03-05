@@ -61,6 +61,7 @@ const createPlaylist = asyncHandler(async (req, res, next) => {
   console.log(req.user);
   console.log("body is", String(req.user._id));
   // console.log("body is", req.params);
+  //user can retrieve all his post by passing his id
 const ownerId= String(req.user._id);
   // const {playlistId: ownerId}= req.params
   console.log("playlist id is ", ownerId);
