@@ -10,13 +10,13 @@ import {ApiResponse} from "../utils/api-response.js"
 
 
 
-const createPlaylist = asyncHandler(async (req, res) => {
+const createPlaylist = asyncHandler(async (req, res, next) => {
     const {name, description} = req.body
     console.log("name is ", name );
 
     //TODO: create playlist
     if(!name){
-        throw new ApiErrors(400, "Playlist name cannot be empty")
+       return next( new ApiErrors(400, "Playlist name cannot be empty"))
     }
       // retrieve the data of the user who created the playlist.
   try {
@@ -32,9 +32,8 @@ const createPlaylist = asyncHandler(async (req, res) => {
         console.log("working here");
         console.log("duplicate is ", duplicate.name);
         //freezes after this line
-       throw new ApiErrors(400, "playlist already exists")
+       return next( new ApiErrors(400, "playlist already exists"))
       }
-       console.log("but not working here")
 
       const playList = await Playlist.create({
         name : name ,
@@ -59,7 +58,11 @@ const createPlaylist = asyncHandler(async (req, res) => {
 })
 
  const getPlaylist = asyncHandler(async (req, res)=> {
-  const {playlistId: ownerId}= req.params
+  console.log(req.user);
+  console.log("body is", String(req.user._id));
+  // console.log("body is", req.params);
+const ownerId= String(req.user._id);
+  // const {playlistId: ownerId}= req.params
   console.log("playlist id is ", ownerId);
   if(!ownerId){
     throw new ApiErrors(400, "playlist id is required")
@@ -70,11 +73,13 @@ const createPlaylist = asyncHandler(async (req, res) => {
     throw new ApiErrors(400, "invalid owner id")
   }
   
+
   //retrieve the playlist data
   const playlists = await Playlist.aggregate([
     {
       $match:{
-        owner: new mongoose.Types.ObjectId(ownerId)
+        // owner: new mongoose.Types.ObjectId(ownerId)
+        owner:  new mongoose.Types.ObjectId(ownerId)
       }
     },
     {
@@ -94,7 +99,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
       
     }
   ])
-  console.log("playlist is ", playlists);
+  // console.log("playlist is ", playlists);
   if(!playlists){
     throw new ApiErrors(404, "playlist not found")
   
@@ -106,6 +111,8 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
    
  })
+
+
 
 
 export {
