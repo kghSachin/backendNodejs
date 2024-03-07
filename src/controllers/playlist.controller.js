@@ -178,10 +178,34 @@ try{
   }
  })
 
+ const updatePlaylist = asyncHandler(async (req, res) => {
+  const {playlistId} = req.params
+  const {name, description} = req.body
+  if(!playlistId){
+    throw ApiErrors(400, "playlist id is required")
+  }
+  if(!name ){
+    throw ApiErrors(400, "playlist name is required")
+  }
+  if(!isValidObjectId(playlistId)){
+    throw ApiErrors(400, "invalid playlist id")
+  }
+  const playlist = await Playlist.findByIdAndUpdate(
+    new mongoose.Types.ObjectId(playlistId),
+    {name, description},
+    {new:true}
+  )
+  if(!playlist){
+    throw ApiErrors(500, "Unable to update the playlist")
+  } 
+  return res.status(201).json(new ApiResponse(201, "Playlist updated successfully", playlist))
+})
+
 
 export {
     createPlaylist,
     getUserPlaylists as getPlaylist ,
     getPlaylistById,
     deletePlaylist,
+    updatePlaylist,
 }
