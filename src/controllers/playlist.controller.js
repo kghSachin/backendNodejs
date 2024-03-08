@@ -238,24 +238,25 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
       "Unauthorized request cant add video in others playlist"
     );
   }
-  const playList = await playList.findById(
+  const playList = await Playlist.findById(
     new mongoose.Types.ObjectId(playlistId)
   );
 
-  if (playList.videos.includes(videoId)) {
+  if (playList.videos.includes(new mongoose.Types.ObjectId(videoId))) {
     return res
       .status(200)
       .json(new ApiResponse(200, "video is already in the playlist", {}));
   }
 
-  const addedVideo = await Playlist.findByIdAndUpdate(
-    new mongoose.Types.ObjectId(playlistId),
+  const addedVideo = await Playlist.updateOne(
+    { _id: playlistId },
     {
       $push: {
-        videos: videoId,
+        videos: new mongoose.Types.ObjectId(videoId),
       },
     }
   );
+  console.log(`added video is ${addedVideo}`);
   if (!addedVideo) {
     throw new ApiErrors(
       400,
@@ -266,13 +267,46 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
   return res
     .status(201)
     .json(
-      new ApiErrors(201, "video added to playlist successfully", addedVideo)
+      new ApiResponse(201, "video added to playlist successfully", addedVideo)
     );
 });
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
   // TODO: remove video from playlist
+  if (!playlistId || !videoId) {
+    throw new ApiErrors(400, "playlist id and video id are required");
+  }
+  const findPlaylist = await Playlist.findById(
+    new mongoose.Types.ObjectId(playlistId)
+  );
+  if (!findPlaylist) {
+    throw new ApiErrors(400, "no playlist found");
+  }
+  if (!(findPlaylist.owner._id.toString() === req.user._id.toString())) {
+    throw new ApiErrors(400, "Unauthorized error cant delete file");
+  }
+  if (!findPlaylist.videos.includes(videoId)) {
+    throw new ApiErrors(400, "playlist has no such video to delete");
+  }
+  const deleteVideo = await Playlist.updateOne(
+    { _id: playlistId },
+    {
+      $pull: {
+        videos: videoId,
+      },
+    }
+  );
+  if (!deleteVideo) {
+    throw new ApiErrors(
+      500,
+      "unable to delete video from playlist at the moment",
+      deleteVideo
+    );
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, "video removed successfully", deleteVideo));
 });
 
 export {
@@ -281,4 +315,6 @@ export {
   getPlaylistById,
   deletePlaylist,
   updatePlaylist,
+  addVideoToPlaylist,
+  removeVideoFromPlaylist,
 };
