@@ -221,6 +221,60 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "Playlist updated successfully", playlist));
 });
 
+const addVideoToPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+  if (!playlistId || !videoId) {
+    throw new ApiErrors(400, "playlistId and videoId are required");
+  }
+  const findPlaylist = await Playlist.findById(
+    new mongoose.Types.ObjectId(playlistId)
+  );
+  if (!findPlaylist) {
+    throw new ApiErrors(400, "Playlist id is invalid");
+  }
+  if (!(findPlaylist.owner.toString() === req.user._id.toString())) {
+    throw new ApiErrors(
+      400,
+      "Unauthorized request cant add video in others playlist"
+    );
+  }
+  const playList = await playList.findById(
+    new mongoose.Types.ObjectId(playlistId)
+  );
+
+  if (playList.videos.includes(videoId)) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "video is already in the playlist", {}));
+  }
+
+  const addedVideo = await Playlist.findByIdAndUpdate(
+    new mongoose.Types.ObjectId(playlistId),
+    {
+      $push: {
+        videos: videoId,
+      },
+    }
+  );
+  if (!addedVideo) {
+    throw new ApiErrors(
+      400,
+      "Something went wrong while adding video to playlist try again later",
+      addedVideo
+    );
+  }
+  return res
+    .status(201)
+    .json(
+      new ApiErrors(201, "video added to playlist successfully", addedVideo)
+    );
+});
+
+const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+  // TODO: remove video from playlist
+});
+
 export {
   createPlaylist,
   getUserPlaylists as getPlaylist,
